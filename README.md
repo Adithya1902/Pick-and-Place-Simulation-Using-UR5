@@ -7,7 +7,7 @@
 
 An industrial-grade autonomous robotic pick-and-place sequence developed on **ROS 2 Jazzy** utilizing **MoveIt 2** for kinematic trajectory planning and **BehaviorTree.CPP v4** for high-level control-flow orchestration. The physical environment and robot dynamics are fully simulated inside **Gazebo Harmonic**.
 
-## 🏗️ System Architecture
+##  System Architecture
 
 This project strictly separates the decision-making logic ("The Brain") from the kinematic execution and hardware interfaces ("The Body") using Object-Oriented Programming (OOP) principles.
 
@@ -25,7 +25,7 @@ This project strictly separates the decision-making logic ("The Brain") from the
 
 ---
 
-## 🛠️ Prerequisites
+##  Prerequisites
 
 Ensure you have the following installed on an Ubuntu 24.04 (Noble) system:
 * [ROS 2 Jazzy Jalisco](https://docs.ros.org/en/jazzy/Installation.html)
@@ -36,7 +36,7 @@ Ensure you have the following installed on an Ubuntu 24.04 (Noble) system:
 
 ---
 
-## 🚀 Installation & Build
+##  Installation & Build
 
 1. **Clone the repository into your ROS 2 workspace:**
    ```bash
