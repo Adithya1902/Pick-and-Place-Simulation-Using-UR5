@@ -36,10 +36,3 @@ Ensure you have the following installed on an Ubuntu 24.04 (Noble) system:
 
 ---
 
-##  Installation & Build
-
-1. **Clone the repository into your ROS 2 workspace:**
-   ```bash
-   mkdir -p ~/ur5_ws/src
-   cd ~/ur5_ws/src
-   git clone [https://github.com/Adithya1902/Pick-and-Place-Simulation-Using-UR5.git](https://github.com/Adithya1902/Pick-and-Place-Simulation-Using-UR5.git) .
