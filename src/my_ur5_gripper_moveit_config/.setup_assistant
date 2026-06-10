@@ -1,0 +1,25 @@
+moveit_setup_assistant_config:
+  urdf:
+    package: my_pick_and_place
+    relative_path: urdf/ur5_with_gripper.urdf.xacro
+  srdf:
+    relative_path: config/ur5_robotiq.srdf
+  package_settings:
+    author_name: adithya_bijoy
+    author_email: adibijoy1307@gmail.com
+    generated_timestamp: 1780815458
+  control_xacro:
+    command:
+      - position
+    state:
+      - position
+      - velocity
+  modified_urdf:
+    xacros:
+      - control_xacro
+  control_xacro:
+    command:
+      - position
+    state:
+      - position
+      - velocity
