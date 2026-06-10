@@ -1,21 +1,13 @@
-# Ignore local ROS 2 build artifacts
 build/
 install/
 log/
-
-# Ignore Python compiled bytecode
 __pycache__/
 *.pyc
-
-# Ignore local system/IDE files
 .vscode/
 .DS_Store
 *.swp
 *.user
-
-# Ignore lock files and build hidden directories
 .colcon/
-
 src/Universal_Robots_ROS2_Description/
 src/Universal_Robots_ROS2_Driver/
 src/Universal_Robots_ROS2_GZ_Simulation/
