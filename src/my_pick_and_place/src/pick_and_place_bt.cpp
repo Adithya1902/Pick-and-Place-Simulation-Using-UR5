@@ -9,9 +9,7 @@
 #include <algorithm>
 #include <chrono>
 
-// ==========================================================
-// 1. THE GRIPPER CLASS
-// ==========================================================
+
 class ControlGripperAction : public BT::SyncActionNode {
 public:
     ControlGripperAction(const std::string& name, const BT::NodeConfig& config)
@@ -55,9 +53,6 @@ public:
     }
 };
 
-// ==========================================================
-// 2. THE ARM CLASS (Optimized MoveIt 2 Integration)
-// ==========================================================
 class MoveArmAction : public BT::SyncActionNode {
 public:
     MoveArmAction(const std::string& name, const BT::NodeConfig& config)
@@ -77,15 +72,9 @@ public:
         if (!getInput("target", target) || !getInput("is_named_pose", is_named_pose)) {
             return BT::NodeStatus::FAILURE;
         }
-
         auto node = config().blackboard->get<rclcpp::Node::SharedPtr>("node");
-        
-        // Retrieve the persistent MoveIt interface from the Blackboard
         auto move_group = config().blackboard->get<std::shared_ptr<moveit::planning_interface::MoveGroupInterface>>("move_group");
-        
         RCLCPP_INFO(node->get_logger(), "Calculating kinematics for target: %s", target.c_str());
-
-        // Route the logic based on the XML flag
         if (is_named_pose) {
             move_group->setNamedTarget(target);
         } else {
@@ -98,8 +87,6 @@ public:
 
             move_group->setPoseTarget(target_pose);
         }
-
-        // 1. Calculate the path
         moveit::planning_interface::MoveGroupInterface::Plan my_plan;
         bool success = (move_group->plan(my_plan) == moveit::core::MoveItErrorCode::SUCCESS);
 
@@ -107,18 +94,12 @@ public:
             RCLCPP_ERROR(node->get_logger(), "MoveIt failed to find a valid kinematic path!");
             return BT::NodeStatus::FAILURE;
         }
-
-        // 2. Execute the path on the Gazebo simulation
         RCLCPP_INFO(node->get_logger(), "Path found! Executing trajectory...");
         move_group->execute(my_plan);
 
         return BT::NodeStatus::SUCCESS;
     }
 };
-
-// ==========================================================
-// 3. MAIN EXECUTION LOOP
-// ==========================================================
 int main(int argc, char** argv) {
     rclcpp::init(argc, argv);
     
@@ -130,29 +111,19 @@ int main(int argc, char** argv) {
         rclcpp::spin(node);
     });
 
-    // Initialize MoveIt 2 Interface HERE, so it stays alive and tracks joint states
     auto move_group = std::make_shared<moveit::planning_interface::MoveGroupInterface>(node, "ur5_manipulator");
-    
-    // Give MoveIt a second to download the robot's current joint states
     RCLCPP_INFO(node->get_logger(), "Warming up MoveIt interface...");
     std::this_thread::sleep_for(std::chrono::seconds(1));
-
     BT::BehaviorTreeFactory factory;
     auto blackboard = BT::Blackboard::create();
-    
-    // Pass both the Node and the MoveGroupInterface to the BT
     blackboard->set<rclcpp::Node::SharedPtr>("node", node);
     blackboard->set<std::shared_ptr<moveit::planning_interface::MoveGroupInterface>>("move_group", move_group);
-
     factory.registerNodeType<MoveArmAction>("MoveArmAction");
     factory.registerNodeType<ControlGripperAction>("ControlGripperAction");
-
     std::string xml_path = "/home/adithyabijoy/ur5_ws/src/my_pick_and_place/trees/pick_and_place.xml";
     auto tree = factory.createTreeFromFile(xml_path, blackboard);
-
     RCLCPP_INFO(node->get_logger(), "Behavior Tree Initialized. Commencing sequence...");
     tree.tickWhileRunning();
-
     rclcpp::shutdown();
     spin_thread.join();
     return 0;
