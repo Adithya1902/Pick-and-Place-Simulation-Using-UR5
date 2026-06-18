@@ -10,17 +10,13 @@ from launch_ros.substitutions import FindPackageShare
 from moveit_configs_utils import MoveItConfigsBuilder
 
 def generate_launch_description():
-    # 1. Constants and Paths
     use_sim_time = LaunchConfiguration('use_sim_time', default='true')
-    
     pkg_my_pick_and_place = FindPackageShare('my_pick_and_place')
     pkg_ros_gz_sim = FindPackageShare('ros_gz_sim')
     pkg_moveit_config = FindPackageShare('my_ur5_gripper_moveit_config')
-
     world_file = PathJoinSubstitution([pkg_my_pick_and_place, 'world', 'pick_and_place.sdf'])
     xacro_file = PathJoinSubstitution([pkg_my_pick_and_place, 'urdf', 'ur5_with_gripper.urdf.xacro'])
-
-    # 2. Gazebo Harmonic - Start Physics Engine with Custom World
+    
     gazebo = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution([pkg_ros_gz_sim, 'launch', 'gz_sim.launch.py'])
@@ -28,7 +24,6 @@ def generate_launch_description():
         launch_arguments={'gz_args': ['-r ', world_file]}.items(),
     )
 
-    # 3. Clock Bridge - Syncs Gazebo's time with ROS 2
     clock_bridge = Node(
         package='ros_gz_bridge',
         executable='parameter_bridge',
@@ -36,7 +31,7 @@ def generate_launch_description():
         output='screen'
     )
 
-    # 4. Robot State Publisher - Compiles XACRO to URDF at runtime
+
     robot_description_content = Command(['xacro ', xacro_file])
     robot_state_publisher = Node(
         package='robot_state_publisher',
@@ -44,7 +39,6 @@ def generate_launch_description():
         parameters=[{'robot_description': robot_description_content, 'use_sim_time': use_sim_time}],
     )
 
-    # 5. Spawn Robot into Gazebo
     spawn_robot = Node(
         package='ros_gz_sim',
         executable='create',
@@ -52,12 +46,10 @@ def generate_launch_description():
         output='screen',
     )
 
-    # 6. Spawners for ROS 2 Control (The Nervous System)
     joint_state_broadcaster = Node(package="controller_manager", executable="spawner", arguments=["joint_state_broadcaster"])
     arm_controller = Node(package="controller_manager", executable="spawner", arguments=["joint_trajectory_controller"])
     gripper_controller = Node(package="controller_manager", executable="spawner", arguments=["gripper_position_controller"])
 
-    # 7. MoveIt 2 Setup (The Brain)
     moveit_config = (
         MoveItConfigsBuilder("my_ur5_gripper_moveit_config", package_name="my_ur5_gripper_moveit_config")
         .robot_description(file_path="config/ur5_robotiq.urdf.xacro")
@@ -73,7 +65,6 @@ def generate_launch_description():
         parameters=[moveit_config.to_dict(), {'use_sim_time': use_sim_time}],
     )
 
-    # 8. RViz Visualization
     rviz_config_file = PathJoinSubstitution([pkg_moveit_config, "config", "moveit.rviz"])
     rviz_node = Node(
         package="rviz2",
@@ -83,12 +74,10 @@ def generate_launch_description():
         arguments=["-d", rviz_config_file],
         parameters=[moveit_config.to_dict(), {'use_sim_time': use_sim_time}],
     )
-
-    # 9. Hand Gazebo the Resource Path for the Gripper Meshes
+    
     robotiq_path = os.path.join(get_package_share_directory('robotiq_description'), '..', '..')
     set_gz_path = AppendEnvironmentVariable('GZ_SIM_RESOURCE_PATH', robotiq_path)
 
-    # Return everything so the ROS 2 launch system executes it simultaneously
     return LaunchDescription([
         set_gz_path,
         gazebo,
